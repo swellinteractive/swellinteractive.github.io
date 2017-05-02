@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<title>Canny Webcam Screen Flasher</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			margin: 0;
+			overflow: hidden;
+		}
+
+		#left_area
+		{
+			width 	: 265px;
+			height 	: 145px;
+			background: rgba(255, 255, 255, 0.65);
+			z-index : 999;
+			top 	: 75px;
+			left 	: 15px;
+			position: absolute;
+			box-shadow: 0px 0px 10px white;
+			border 	: 4px solid gray;
+			border-style: double;
+		}
+
+		#left_area td:last-child
+		{
+			padding-left: 5px;
+		}
+
+		#color_area
+		{
+			color: #151515;
+			padding: 12px;
+			font-size: 13px;	
+			font-family: fantasy;
+		}
+	</style>
+
+	<script src="assets/js/libraries/jquery-1.12.4.js"></script>
+	<script src="assets/js/libraries/three.js"></script>
+	<script src="assets/js/libraries/ShaderLoader.js"></script>
+	<script src="assets/js/libraries/threejs/EffectComposer.js"></script>
+	<script src="assets/js/libraries/threejs/RenderPass.js"></script>
+	<script src="assets/js/libraries/threejs/ShaderPass.js"></script>
+	<script src="assets/js/libraries/threejs/Stats.js"></script>
+
+	<script language="javascript">
+		$(document).ready(function()
+		{
+			$("#color_shadow").on("change", function()
+			{
+				var color = hexToRgb(this.value);
+
+				iProov.webgl.uniform.invert.cannyR.value = color.r;
+		        iProov.webgl.uniform.invert.cannyG.value = color.g;
+		        iProov.webgl.uniform.invert.cannyB.value = color.b;
+
+		        iProov.webgl.render();
+			});
+
+			$("#slide_width").on("change", function()
+			{
+				iProov.webgl.uniform.invert.threshold.value = this.value / 100;
+				iProov.webgl.render();
+			});
+
+			$("#slide_count").on("change", function()
+			{
+				iProov.webgl.uniform.canny.swidth.value = this.value / 50;
+				iProov.webgl.render();
+			});
+
+			$("#slide_blur").on("change", function()
+			{
+				console.log(iProov.webgl.uniform.blur, this.value);
+				iProov.webgl.uniform.blur.gaussianH.radius.value = this.value / 50.0;
+				iProov.webgl.uniform.blur.gaussianV.radius.value = this.value / 50.0;
+				iProov.webgl.render();
+			});
+
+			// hCrop
+		});
+
+		function hexToRgb(hex)
+		{
+			var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+			
+			return result ? 
+			{
+				r: parseInt(result[1], 16) / 255,
+				g: parseInt(result[2], 16) / 255,
+				b: parseInt(result[3], 16) / 255
+			} : null;
+		}
+	</script>
+
+	<script src="assets/js/iProov.js"></script>
+	<script src="assets/js/iProov/webgl.js"></script>
+	<script src="assets/js/iProov/webgl/flashes.js"></script>
+	<script src="assets/js/iProov/webgl/uniforms.js"></script>
+	<script src="assets/js/iProov/webgl/shaders.js"></script>
+	<script src="assets/js/iProov/screen.js"></script>
+	<script src="assets/js/iProov/console.js"></script>
+
+	<script data-src="assets/shaders/normal.vert" data-name="normal" type="x-shader/x-vertex"></script>
+	<script data-src="assets/shaders/normal.frag" data-name="normal" type="x-shader/x-fragment"></script>
+	<script data-src="assets/shaders/invert.vert" data-name="invert" type="x-shader/x-vertex"></script>
+	<script data-src="assets/shaders/invert.frag" data-name="invert" type="x-shader/x-fragment"></script>
+	<script data-src="assets/shaders/canny.vert" data-name="canny" type="x-shader/x-vertex"></script>
+	<script data-src="assets/shaders/canny.frag" data-name="canny" type="x-shader/x-fragment"></script>
+	<script data-src="assets/shaders/blend.vert" data-name="blend" type="x-shader/x-vertex"></script>
+	<script data-src="assets/shaders/blend.frag" data-name="blend" type="x-shader/x-fragment"></script>
+	<script data-src="assets/shaders/copy.vert" data-name="copy" type="x-shader/x-vertex"></script>
+	<script data-src="assets/shaders/copy.frag" data-name="copy" type="x-shader/x-fragment"></script>
+	<script data-src="assets/shaders/flash/circles.vert" data-name="flash" type="x-shader/x-vertex"></script>
+	<script data-src="assets/shaders/flash/circles.frag" data-name="flash" type="x-shader/x-fragment"></script>
+	<!--<script data-src="assets/shaders/flash/solid.vert" data-name="flash" type="x-shader/x-vertex"></script>-->
+	<!--<script data-src="assets/shaders/flash/solid.frag" data-name="flash" type="x-shader/x-fragment"></script>-->
+	<!--<script data-src="assets/shaders/blur/median.vert" data-name="blur" type="x-shader/x-vertex"></script>-->
+	<!--<script data-src="assets/shaders/blur/median.frag" data-name="blur" type="x-shader/x-fragment"></script>-->
+	<!--<script data-src="assets/shaders/blur/bilateral.vert" data-name="blur" type="x-shader/x-vertex"></script>-->
+	<!--<script data-src="assets/shaders/blur/bilateral.frag" data-name="blur" type="x-shader/x-fragment"></script>-->
+	<script data-src="assets/shaders/blur/gaussianH.vert" data-name="blurH" type="x-shader/x-vertex"></script>
+	<script data-src="assets/shaders/blur/gaussianH.frag" data-name="blurH" type="x-shader/x-fragment"></script>
+	<script data-src="assets/shaders/blur/gaussianV.vert" data-name="blurV" type="x-shader/x-vertex"></script>
+	<script data-src="assets/shaders/blur/gaussianV.frag" data-name="blurV" type="x-shader/x-fragment"></script>
+</head>
+<body>
+	<p id="errorMessage"></p>
+	<video id="iproov-video" autoplay width="800" height="600" style="visibility: hidden; float:left;"></video>
+
+	<div id="ThreeJS" style="position: absolute; left:0px; top:0px"></div>
+
+	<div id="ctrl_area" style="position:absolute; z-index:99; left : 20px; top : 20px;">
+		<input type="number" id="txt_color_index" value="0" min="0" style="width : 50px">
+		<input type="button" id="btn_anim" value="View Flash" onclick="javascript:iProov.webgl.flash.change(document.getElementById('txt_color_index').value);">
+		<!--<br />-->
+		<!--<input type="number" id="txt_threshold1" value="0.99" min="0" style="width : 50px">-->
+		<!--<input type="button" id="btn_threshold1" value="Threshold 1" onclick="javascript:iProov.webgl.uniform.invert.threshold.value = document.getElementById('txt_threshold1').value;">-->
+	</div>
+
+	<div id="left_area">
+		<div id="color_area">
+			<table>
+				<tr>
+					<td>Shadow Color : </td>
+					<td><input type="color" id="color_shadow"></td>
+				</tr>
+				<tr>
+					<td>Threshold : </td>
+					<td>
+						<input type="range" name="points" id="slide_width" value="90" min="80" max="100">
+					</td>
+				</tr>
+				<tr>
+					<td>Shadow Count : </td>
+					<td>
+						<input type="range" name="points" id="slide_count" value="50" min="0" max="100">
+					</td>
+				</tr>
+				<tr>
+					<td>Blur Radius : </td>
+					<td>
+						<input type="range" name="points" id="slide_blur" value="2" min="0" max="100">
+					</td>
+				</tr>
+			</table>
+		</div>
+
+	</div>
+
+	<script>
+
+		var iProov = new IProov();
+		iProov.start();
+
+		navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+		window.URL = window.URL || window.webkitURL;
+
+		var camvideo = document.getElementById('iproov-video');
+
+		if (!navigator.getUserMedia) {
+			document.getElementById('errorMessage').innerHTML =	'Sorry. <code>navigator.getUserMedia()</code> is not available.';
+		} else {
+			navigator.getUserMedia({video: true}, gotStream, noStream);
+		}
+
+		function gotStream(stream) {
+			if (window.URL) {
+				camvideo.src = window.URL.createObjectURL(stream);
+			} else {
+				camvideo.src = stream;
+			}
+
+			camvideo.onerror = function(e) {
+				stream.stop();
+			};
+
+			//stream.onended = noStream;
+		}
+
+		function noStream(e) {
+			var msg = 'No camera available.';
+			if (e.code == 1) {
+				msg = 'User denied access to use camera.';
+			}
+			document.getElementById('errorMessage').textContent = msg;
+		}
+
+	</script>
+</body>
+</html>
